@@ -1,31 +1,20 @@
-// import { Climb } from '../types/climbs'
+import axios from 'axios'
 
 const BASE_URL = 'http://localhost:3001/internal-climbs'
 
 export const getAllClimbs = async () => {
-  const response = await fetch(BASE_URL)
-  return await response.json()
+  const response = await axios.get(BASE_URL)
+  return response.data
 }
 
 export const getClimbsByUsername = async (username: string) => {
-  console.log({ username })
-
   // check internal database for climbs by username
-  const response = await fetch(`${BASE_URL}/${username}`)
-  console.log('response', response)
-
-  console.log('response.status', response.status)
-
-  // // if response is empty, fetch from OpenBeta
-  // if (response.status === 404) {
-  //   const openBetaResponse = await fetch(
-  //     `http://localhost:3001/openbeta-climbs/fetch-from-openbeta/${username}`
-  //   )
-  //   console.log('openBetaResponse', openBetaResponse)
-  //   return await openBetaResponse.json()
-  // }
-
-  return await response.json()
+  try {
+    const response = await axios.get(`${BASE_URL}/${username}`)
+    return response.data
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 // async function getTicks(username: string): Promise<void> {
@@ -104,14 +93,14 @@ export const getClimbsByUsername = async (username: string) => {
 // }
 
 export const importOpenbetaClimbsByUsername = async (username: string) => {
-  // const [loading, setLoading] = useState(false)
-  // const [error, setError] = useState<Error | null>(null)
-  // const [data, setData] = useState<any>(null)
-
-  const response = await fetch(
-    `http://localhost:3001/openbeta-climbs/fetch-from-openbeta/${username}`
-  )
-  return await response.json()
+  try {
+    const response = await axios.get(
+      `http://localhost:3001/openbeta-climbs/fetch-from-openbeta/${username}`
+    )
+    return response.data
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 // export const addClimb = async (climbData: Climb) => {

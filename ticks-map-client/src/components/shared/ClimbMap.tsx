@@ -1,57 +1,77 @@
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
-import { getAllClimbs, getClimbsByUsername } from '../../services/climbService'
-import { useEffect, useState } from 'react'
-import { Climb } from '../../types/climbs'
+import React, { useEffect, useState } from 'react'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import { useNavigate } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
+import { getAllClimbs, getClimbsByUsername } from '../../services/climbService'
+import { Climb } from '../../types/climbs'
 
 interface ClimbMapProps {
   username?: string
 }
 
+const defaultLat = 0
+const defaultLng = 0
+const defaultZoom = 13
+
+function SetViewToBounds({ climbs }: { climbs: Climb[] }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (climbs.length === 0) {
+      map.setView([defaultLat, defaultLng], defaultZoom)
+      return
+    }
+
+    const bounds = new L.LatLngBounds([])
+
+    climbs.forEach((climb) => {
+      bounds.extend(new L.LatLng(climb.lat, climb.lng))
+    })
+
+    map.fitBounds(bounds)
+  }, [climbs, map])
+
+  return null
+}
+
 function ClimbMap({ username }: ClimbMapProps) {
   const [climbs, setClimbs] = useState<Climb[]>([])
+  const navigate = useNavigate()
 
-  // TODO: eventually swap to getAllClimbs
   useEffect(() => {
     async function fetchData() {
-      let climbData = undefined
-      if (username !== undefined) {
+      let climbData
+      if (username) {
         climbData = await getClimbsByUsername(username)
       } else {
         climbData = await getAllClimbs()
       }
-      console.log(climbData)
+
+      if (!climbData) {
+        navigate('/')
+        return
+      }
 
       setClimbs(climbData)
     }
 
     fetchData()
-  }, [username])
+  }, [username, navigate])
 
   return (
-    <MapContainer id='mapId' center={[51.505, -0.09]} zoom={13}>
+    <MapContainer
+      id='mapId'
+      center={[defaultLat, defaultLng]}
+      zoom={defaultZoom}
+      style={{ height: '100%', width: '100%' }}
+    >
       <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
       {climbs.map((climb) => (
-        <Marker key={climb._id} position={[climb.lat, climb.lng]}></Marker>
+        <Marker key={climb._id} position={[climb.lat, climb.lng]} />
       ))}
+      <SetViewToBounds climbs={climbs} />
     </MapContainer>
-    // <MapContainer
-    //   id='mapId'
-    //   center={[51.505, -0.09]}
-    //   zoom={13}
-    //   scrollWheelZoom={false}
-    //   className='centered-content'
-    // >
-    //   <TileLayer
-    //     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    //     url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-    //   />
-    //   <Marker position={[51.505, -0.09]}>
-    //     <Popup>
-    //       A pretty CSS3 popup. <br /> Easily customizable.
-    //     </Popup>
-    //   </Marker>
-    // </MapContainer>
   )
 }
 

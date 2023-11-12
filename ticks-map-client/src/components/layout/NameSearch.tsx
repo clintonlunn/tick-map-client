@@ -9,32 +9,33 @@ import { useNavigate } from 'react-router-dom'
 const NameSearch = () => {
   const [username, setUsername] = useState('')
   const [data, setData] = useState([])
+  const [hasSearched, setHasSearched] = useState(false)
   const navigate = useNavigate()
+  const renderResults = username !== '' && hasSearched
 
-  const handleClick = async () => {
-    console.log('clicked')
-
+  const handleNameSearchSubmit = async () => {
+    setHasSearched(true)
     const climbs = await getClimbsByUsername(username)
-    setData(climbs)
-    console.log(data)
-    console.log(climbs)
-    navigate(`/${username}`)
 
-    // submit username to backend so the backend can query openbeta for the user's climbs. it will then save the climbs to the db and return them to the frontend
+    if (!climbs) {
+      setData([])
+      return
+    }
+    setData(climbs)
+    navigate(`/${username}`)
   }
 
-  const handleFetchOpenbeta = async () => {
-    console.log('fetching openbeta')
-    // submit username to backend so the backend can query openbeta for the user's climbs. it will then save the climbs to the db and return them to the frontend
-    const climbs = await importOpenbetaClimbsByUsername(username)
-    setData(climbs)
+  const handleImportFromOpenbeta = async () => {
+    // query openbeta for the user's climbs and save them to the db
+    await importOpenbetaClimbsByUsername(username)
+    // then navigate to the user's page (which will then query the db for the user's climbs and display them)
     navigate(`/${username}`)
   }
 
   return (
-    <div>
-      {/* // <div className='absolute top-16 right-4 p-4 bg-white shadow-md rounded-md'> */}
-      <div>
+    <div className='top-16 right-4 p-4 bg-white'>
+      <h1 className='text-xl'>Search by name</h1>
+      <div className='flex flex-col'>
         <input
           type='text'
           placeholder='Enter your name'
@@ -44,35 +45,35 @@ const NameSearch = () => {
         />
         <button
           className='mt-2 bg-blue-600 text-white p-2 rounded-md w-full'
-          onClick={handleClick}
+          onClick={handleNameSearchSubmit}
         >
           Submit
         </button>
       </div>
-
       {/* if empty results */}
-      {data.length === 0 && (
+      {renderResults && data.length === 0 && (
         <>
           <p>No results found</p>
           <p>Would you like to import your data from OpenBeta?</p>
-          <button onClick={handleFetchOpenbeta}>Yes</button>
+          <button onClick={handleImportFromOpenbeta}>Yes</button>
         </>
       )}
-
       {/* results */}
       {data.length > 0 && (
         <>
           <p>Results:</p>
           <div>
-            {data.map((climb: Climb) => (
-              <div key={climb._id}>
-                <p>
-                  {climb.name} {climb.grade} {climb.attempt_type}
-                  {climb.date_climbed}
-                  {climb.date_climbed}
-                </p>
-              </div>
-            ))}
+            {data.map((climb: Climb) => {
+              return (
+                <div key={climb._id}>
+                  <p>
+                    {climb.name} {climb.grade} {climb.attempt_type}
+                    {climb.date_climbed}
+                    {climb.date_climbed}
+                  </p>
+                </div>
+              )
+            })}
           </div>
         </>
       )}
