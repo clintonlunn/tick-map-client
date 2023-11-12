@@ -9,26 +9,47 @@ import { useNavigate } from 'react-router-dom'
 const NameSearch = () => {
   const [username, setUsername] = useState('')
   const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const navigate = useNavigate()
   const renderResults = username !== '' && hasSearched
+  const [noResults, setNoResults] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('No results found')
 
   const handleNameSearchSubmit = async () => {
     setHasSearched(true)
     const climbs = await getClimbsByUsername(username)
 
     if (!climbs) {
+      setNoResults(true)
+      setErrorMessage(
+        'No results found in database. Please import from OpenBeta first'
+      )
       setData([])
       return
     }
+    setNoResults(false)
+    setErrorMessage('')
     setData(climbs)
     navigate(`/${username}`)
   }
 
   const handleImportFromOpenbeta = async () => {
     // query openbeta for the user's climbs and save them to the db
-    await importOpenbetaClimbsByUsername(username)
+    setLoading(true)
+    const openBetaData = await importOpenbetaClimbsByUsername(username)
     // then navigate to the user's page (which will then query the db for the user's climbs and display them)
+    setLoading(false)
+    if (openBetaData === undefined) {
+      setNoResults(true)
+      setErrorMessage(
+        'No results found in OpenBeta, please import data into OpenBeta first'
+      )
+      navigate('/')
+      return
+    }
+    setNoResults(false)
+    setErrorMessage('')
     navigate(`/${username}`)
   }
 
@@ -39,10 +60,13 @@ const NameSearch = () => {
         <input
           type='text'
           placeholder='Enter your name'
-          className='p-2 rounded-md border w-full'
+          className={`p-2 rounded-md border w-full mt-2 ${
+            noResults ? 'border-red-500' : ''
+          }`}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
+        {noResults && <p className='text-red-500'>{errorMessage}</p>}
         <button
           className='mt-2 bg-blue-600 text-white p-2 rounded-md w-full'
           onClick={handleNameSearchSubmit}
@@ -54,8 +78,11 @@ const NameSearch = () => {
       {renderResults && data.length === 0 && (
         <>
           <p>No results found</p>
-          <p>Would you like to import your data from OpenBeta?</p>
-          <button onClick={handleImportFromOpenbeta}>Yes</button>
+          <div className='mt-4'>
+            <p>Would you like to import your data from OpenBeta?</p>
+            <button onClick={handleImportFromOpenbeta}>Yes</button>
+            {loading && <p>Loading...</p>}
+          </div>
         </>
       )}
       {/* results */}
