@@ -1,19 +1,28 @@
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
-import { getClimbsByUsername } from '../../services/climbService'
+import { getAllClimbs, getClimbsByUsername } from '../../services/climbService'
 import { useEffect, useState } from 'react'
 import { Climb } from '../../types/climbs'
 import 'leaflet/dist/leaflet.css'
 
-function ClimbMap() {
-  const [climbs, setClimbs] = useState<Climb[]>([])
-  const username = 'clinton'
+interface ClimbMapProps {
+  username?: string
+}
 
+function ClimbMap({ username }: ClimbMapProps) {
+  const [climbs, setClimbs] = useState<Climb[]>([])
+
+  // TODO: eventually swap to getAllClimbs
   useEffect(() => {
     async function fetchData() {
-      const data = await getClimbsByUsername(username)
-      console.log(data)
+      let climbData = undefined
+      if (username !== undefined) {
+        climbData = await getClimbsByUsername(username)
+      } else {
+        climbData = await getAllClimbs()
+      }
+      console.log(climbData)
 
-      setClimbs(data)
+      setClimbs(climbData)
     }
 
     fetchData()
