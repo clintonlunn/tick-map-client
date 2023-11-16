@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -61,6 +61,7 @@ function ClimbMap({ username }: ClimbMapProps) {
     new Map()
   )
 
+  // load climbs from database
   useLoadClimbData(username, setGroupedClimbs)
 
   return (
