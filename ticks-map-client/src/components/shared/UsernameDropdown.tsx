@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import DropdownButton from '../layout/DropdownButton'
 import DropdownMenu from '../layout/DropdownMenu'
-import { getAllUsernames } from '../../services/userService'
+import useLoadUsers from '../../hooks/useLoadUsers'
 
 interface UsernameDropdownProps {
   activeUsername: string | undefined
@@ -15,16 +15,7 @@ function UsernameDropdown({
   handleUsernameSelection,
 }: UsernameDropdownProps) {
   const [isActive, setIsActive] = useState(false)
-  const [usernames, setUsernames] = useState<string[]>([])
-
-  useEffect(() => {
-    async function fetchData() {
-      const usernames = await getAllUsernames()
-      setUsernames(usernames)
-    }
-
-    fetchData()
-  }, [])
+  const usernames = useLoadUsers()
 
   const handleClick = () => {
     setIsActive(!isActive)
