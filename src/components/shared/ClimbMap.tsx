@@ -57,12 +57,8 @@ function ClimbMapContent({ groupedClimbs }: ClimbMapContentProps) {
 }
 
 function ClimbMap({ username }: ClimbMapProps) {
-  const [groupedClimbs, setGroupedClimbs] = useState<Map<string, Climb[]>>(
-    new Map()
-  )
-
   // load climbs from database
-  useLoadClimbData(username, setGroupedClimbs)
+  const groupedClimbs = useLoadClimbData(username)
 
   return (
     <MapContainer

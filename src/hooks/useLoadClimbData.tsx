@@ -1,13 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { getAllClimbs, getClimbsByUsername } from '../services/climbService'
 import { groupClimbsByArea } from '../utils/utils'
 import { useNavigate } from 'react-router-dom'
 import { Climb } from '../types/climbs'
 
-function useLoadClimbData(
-  username: string | undefined,
-  setGroupedClimbs: React.Dispatch<React.SetStateAction<Map<string, Climb[]>>>
-) {
+function useLoadClimbData(username: string | undefined) {
+  const [groupedClimbs, setGroupedClimbs] = useState<Map<string, Climb[]>>(
+    new Map()
+  )
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -31,6 +31,8 @@ function useLoadClimbData(
 
     fetchData()
   }, [username, navigate, setGroupedClimbs])
+
+  return groupedClimbs
 }
 
 export default useLoadClimbData
