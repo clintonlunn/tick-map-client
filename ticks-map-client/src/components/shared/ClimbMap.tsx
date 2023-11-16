@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import { useNavigate } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
-import { getAllClimbs, getClimbsByUsername } from '../../services/climbService'
 import { Climb } from '../../types/climbs'
 import CustomPopup from './CustomPopup'
-import { groupClimbsByArea } from '../../utils/utils'
+import useLoadClimbData from '../../hooks/useLoadClimbData'
 
 interface ClimbMapProps {
   username?: string
+}
+
+interface ClimbMapContentProps {
+  groupedClimbs: Map<string, Climb[]>
 }
 
 const defaultLat = 0
 const defaultLng = 0
 const defaultZoom = 13
 
-function ClimbMapContent({
-  groupedClimbs,
-}: {
-  groupedClimbs: Map<string, Climb[]>
-}) {
+function ClimbMapContent({ groupedClimbs }: ClimbMapContentProps) {
   const map = useMap()
   const allClimbs = Array.from(groupedClimbs.values()).flat()
 
@@ -62,29 +60,8 @@ function ClimbMap({ username }: ClimbMapProps) {
   const [groupedClimbs, setGroupedClimbs] = useState<Map<string, Climb[]>>(
     new Map()
   )
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    async function fetchData() {
-      let climbData
-      if (username) {
-        climbData = await getClimbsByUsername(username)
-      } else {
-        climbData = await getAllClimbs()
-      }
-
-      if (!climbData) {
-        navigate('/')
-        return
-      }
-
-      const groupedClimbsObject = groupClimbsByArea(climbData)
-      const groupedClimbsMap = new Map(Object.entries(groupedClimbsObject))
-      setGroupedClimbs(groupedClimbsMap)
-    }
-
-    fetchData()
-  }, [username, navigate])
+  useLoadClimbData(username, setGroupedClimbs)
 
   return (
     <MapContainer
